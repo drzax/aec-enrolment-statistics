@@ -1,7 +1,8 @@
 {
-	"dependencies": {
-		"cheerio": "latest",
-		"request": "latest",
-		"sqlite3": "latest"
-	}
+  "dependencies": {
+    "cheerio": "latest",
+    "power-ranger": "^1.1.0",
+    "request": "latest",
+    "sqlite3": "latest"
+  }
 }

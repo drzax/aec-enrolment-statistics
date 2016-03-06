@@ -26,9 +26,10 @@ function updateRow(db, values) {
 
 function fetchPage(url, callback) {
 	// Use request to read in pages.
+	console.log("Fetching: " + url);
 	request(url, function (error, response, body) {
 		if (error) {
-			console.log("Error requesting page: " + error);
+			console.error("Error requesting page: " + error);
 			return;
 		}
 
@@ -46,22 +47,38 @@ function run(db) {
 		var year, month;
 		year = date.getFullYear();
 		month = date.getMonth()+1;
-		var url = endpoint.replace('{yr}', year).replace('{mth}', pad(month,2));
-		fetchPage(url, scrapeData(db, year, month));
+		db.get('SELECT COUNT(*) AS count FROM data WHERE month = ? AND year = ?', [month, year], checkExisting(db, year, month));
 		date.setMonth(date.getMonth() + 1);
 	}
+}
+
+function checkExisting(db,year,month) {
+	var url = endpoint.replace('{yr}', year).replace('{mth}', pad(month,2));
+	return function(err, result){
+		if (err) {
+			console.error("Error checking for existing records: " + error);
+		}
+
+		if (result.count > 0) {
+			console.log("Records exist for " + year + '-' + month);
+		} else {
+			fetchPage(url, scrapeData(db, year, month));
+		}
+	};
 }
 
 function scrapeData(db, year, month) {
 	return function scrapeData(body) {
 
 		// Use cheerio to find things in the page with css selectors.
-		var $ = cheerio.load(body);
+		var count = 0,
+			$ = cheerio.load(body);
 
 		$('table').each(function() {
 			var state = $(this).attr('id');
 			$(this).find('tbody tr').each(function(){
 				var $row = $(this);
+				count++;
 				updateRow(db,[
 					year,
 					month,
@@ -72,6 +89,7 @@ function scrapeData(db, year, month) {
 				]);
 			});
 		});
+		console.log(count + ' records found for ' + year + '-' + month);
 	};
 }
 

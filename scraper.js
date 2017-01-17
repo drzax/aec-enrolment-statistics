@@ -84,7 +84,7 @@ function scrapeData(db, year, month) {
 					month,
 					$row.children().eq(0).text(),
 					state,
-					$row.children().eq(1).text(),
+					+$row.children().eq(1).text().replace(/ /g, ''),
 					$row.children().eq(2).text()
 				]);
 			});
